@@ -76,8 +76,8 @@ public class MainController {
         return new ResponseEntity<>(set,HttpStatus.OK);
     }
 
-    @GetMapping("/getBrand")
-    public ResponseEntity<Set<String>> getAllBrand() {
+    @GetMapping("/getBrands")
+    public ResponseEntity<Set<String>> getAllBrands() {
         Set<String> set = new HashSet<>(partsRepo.getAllBrands());
         return new ResponseEntity<>(set,HttpStatus.OK);
     }
