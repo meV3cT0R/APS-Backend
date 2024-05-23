@@ -1,8 +1,6 @@
 package com.vector.auto.model;
 
 import java.util.List;
-import java.util.Map;
-
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -21,7 +19,7 @@ public class AutopartForm {
 
 
     private Double price;
-    private String category;
+    private Long category;
 
     private List<String> images;
 }

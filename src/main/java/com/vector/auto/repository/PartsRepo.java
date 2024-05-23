@@ -10,8 +10,6 @@ import com.vector.auto.model.Autopart;
 
 @Repository
 public interface PartsRepo extends JpaRepository<Autopart,Long>{
-    @Query("SELECT distinct u.category FROM Autopart u")
-    List<String> getAllCategory();
 
     @Query("SELECT distinct u.brand FROM Autopart u")
     List<String> getAllBrands();

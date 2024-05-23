@@ -14,11 +14,13 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.vector.auto.model.Autopart;
+import com.vector.auto.model.Category;
 import com.vector.auto.model.LoginForm;
 
 import com.vector.auto.model.Role;
 import com.vector.auto.model.TokenLogin;
 import com.vector.auto.model.User;
+import com.vector.auto.repository.CatRepo;
 import com.vector.auto.repository.PartsRepo;
 import com.vector.auto.repository.UserRepo;
 import com.vector.auto.services.JwtService;
@@ -33,32 +35,30 @@ import org.springframework.web.bind.annotation.*;
 @RestController
 @RequestMapping("/api")
 public class MainController {
-
     @Autowired
     private UserInfoService service;
-
     @Autowired
     private JwtService jwtService;
-
     @Autowired
     private AuthenticationManager authenticationManager;
-
     @Autowired
     private PartsRepo partsRepo;
-
-
     @Autowired
     private UserRepo userRepo;
-
+    @Autowired
+    private CatRepo catRepo;
+    
     @GetMapping("/welcome")
     public String welcome() {
         return "Welcome this endpoint is not secure";
     }
 
     @PostMapping("/register")
-    public String addNewUser(@RequestBody User userInfo) {
+    public ResponseEntity<String> addNewUser(@RequestBody User userInfo) {
+        Optional<User> user = userRepo.findByUsername(userInfo.getUsername());
+        if(user.isPresent()) return new ResponseEntity<>("user already exists",HttpStatus.CONFLICT);
         userInfo.setRole(Role.USER);
-        return service.addUser(userInfo);
+        return new ResponseEntity<>(service.addUser(userInfo),HttpStatus.CONFLICT);
     }
 
     @GetMapping("/getAllProducts")
@@ -77,9 +77,9 @@ public class MainController {
 
 
     @GetMapping("/getCategories")
-    public ResponseEntity<Set<String>> getAllCategories() {
-        Set<String> set = new HashSet<>(partsRepo.getAllCategory());
-        return new ResponseEntity<>(set,HttpStatus.OK);
+    public ResponseEntity<List<Category>> getAllCategories() {
+        List<Category> cats = catRepo.findAll();
+        return new ResponseEntity<>(cats,HttpStatus.OK);
     }
 
     @GetMapping("/getBrands")
@@ -113,6 +113,7 @@ public class MainController {
     public ResponseEntity<String> authenticateAndGetToken(@RequestBody LoginForm authRequest) {
         Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(authRequest.getUsername(), authRequest.getPassword()));
         if (authentication.isAuthenticated()) {
+            System.out.println(userRepo.findByUsername(authRequest.getUsername()).get().getRole());
             return new ResponseEntity<String>(jwtService.generateToken(authRequest.getUsername()),HttpStatus.OK);
         } else {
             return new ResponseEntity<>("Invalid username/password",HttpStatus.FORBIDDEN);

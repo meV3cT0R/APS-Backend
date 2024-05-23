@@ -18,7 +18,6 @@ import com.vector.auto.services.JwtService;
 
 import java.io.IOException;
 
-// This class helps us to validate the generated jwt token
 @Component
 public class JwtAuthFilter extends OncePerRequestFilter {
 
