@@ -4,8 +4,12 @@ import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.SignatureAlgorithm;
 import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
+
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.stereotype.Component;
+
+import com.vector.auto.repository.UserRepo;
 
 import java.security.Key;
 import java.util.Date;
@@ -15,7 +19,8 @@ import java.util.function.Function;
 
 @Component
 public class JwtService {
-
+    @Autowired
+    private UserRepo userRepo;
     public static final String SECRET = "5367566B59703373367639792F423F4528482B4D6251655468576D5A71347437";
     public String generateToken(String userName) {
         Map<String, Object> claims = new HashMap<>();
@@ -63,9 +68,13 @@ public class JwtService {
     }
 
     public Boolean validateToken(String token, UserDetails userDetails) {
-        final String username = extractUsername(token);
-        return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
+        final String tokenUsername = extractUsername(token);
+        return (tokenUsername.equals(userDetails.getUsername()) && !isTokenExpired(token));
     }
 
+    public Boolean validateToken(String token) {
+        final String tokenUsername = extractUsername(token);
 
+        return userRepo.findByUsername(tokenUsername).isPresent() && !isTokenExpired(token);
+    }
 }

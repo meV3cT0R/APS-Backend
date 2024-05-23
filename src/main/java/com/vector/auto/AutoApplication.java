@@ -56,6 +56,14 @@ public class AutoApplication {
 			admin.setRole(Role.ADMIN);
 
 			userRepo.save(admin);
+
+			User user = new User();
+			user.setName("user");
+			user.setUsername("user");
+			user.setPassword(encoder.encode("user"));
+			user.setRole(Role.USER);
+
+			userRepo.save(user);
 			System.out.println("Data inserted");
 		};
 	}

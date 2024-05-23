@@ -19,9 +19,8 @@ public class AutopartForm {
     private String name;
 
 
-    private Map<String,String> specs;
 
-    private double price;
+    private Double price;
     private String category;
 
     private List<String> images;

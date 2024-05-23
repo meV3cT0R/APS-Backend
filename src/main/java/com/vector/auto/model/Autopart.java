@@ -40,7 +40,6 @@ public class Autopart {
 
     public Autopart(AutopartForm part) {
         this.name = part.getName();
-        this.specs = part.getSpecs();
         this.price = part.getPrice();
         this.category = part.getCategory();
         this.images = part.getImages();

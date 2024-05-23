@@ -14,12 +14,13 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.vector.auto.model.Autopart;
-import com.vector.auto.model.AutopartForm;
 import com.vector.auto.model.LoginForm;
 
 import com.vector.auto.model.Role;
+import com.vector.auto.model.TokenLogin;
 import com.vector.auto.model.User;
 import com.vector.auto.repository.PartsRepo;
+import com.vector.auto.repository.UserRepo;
 import com.vector.auto.services.JwtService;
 import com.vector.auto.services.UserInfoService;
 
@@ -44,6 +45,11 @@ public class MainController {
 
     @Autowired
     private PartsRepo partsRepo;
+
+
+    @Autowired
+    private UserRepo userRepo;
+
     @GetMapping("/welcome")
     public String welcome() {
         return "Welcome this endpoint is not secure";
@@ -81,7 +87,21 @@ public class MainController {
         Set<String> set = new HashSet<>(partsRepo.getAllBrands());
         return new ResponseEntity<>(set,HttpStatus.OK);
     }
-    
+
+
+    @PostMapping("/loginWithToken")
+    public ResponseEntity<User> loginWithToken(@RequestBody TokenLogin tokenLogin) {
+        boolean valid = jwtService.validateToken(tokenLogin.getToken());
+        String username = jwtService.extractUsername(tokenLogin.getToken());
+        
+        Optional<User> user = userRepo.findByUsername(username);
+
+        if(valid && user.isPresent())
+            return new ResponseEntity<>(user.get(),HttpStatus.OK);   
+        return new ResponseEntity<>(null,HttpStatus.FORBIDDEN);
+    }
+
+
     @GetMapping("/admin/adminProfile")
     @PreAuthorize("hasAuthority('ADMIN')")
     public String adminProfile() {
@@ -90,12 +110,12 @@ public class MainController {
 
 
     @PostMapping("/login")
-    public String authenticateAndGetToken(@RequestBody LoginForm authRequest) {
+    public ResponseEntity<String> authenticateAndGetToken(@RequestBody LoginForm authRequest) {
         Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(authRequest.getUsername(), authRequest.getPassword()));
         if (authentication.isAuthenticated()) {
-            return jwtService.generateToken(authRequest.getUsername());
+            return new ResponseEntity<String>(jwtService.generateToken(authRequest.getUsername()),HttpStatus.OK);
         } else {
-            return "Invalid Username/Password";
+            return new ResponseEntity<>("Invalid username/password",HttpStatus.FORBIDDEN);
         }
     }
 
