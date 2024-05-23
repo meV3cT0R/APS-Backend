@@ -16,7 +16,6 @@ import com.vector.auto.repository.UserRepo;
 import java.util.Map;
 import java.util.HashMap;
 
-import java.util.Arrays;
 @SpringBootApplication
 public class AutoApplication {
 	public static void main(String[] args) {

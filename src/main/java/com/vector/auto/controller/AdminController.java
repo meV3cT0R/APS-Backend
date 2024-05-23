@@ -152,9 +152,20 @@ public class AdminController {
 
     @PostMapping("/saveCategory")
     @PreAuthorize("hasAuthority('ADMIN')")
-    public ResponseEntity<Category> saveCategory(@RequestParam("name") String name,@RequestParam("image") MultipartFile file) throws IOException {
+    public ResponseEntity<Category> saveCategory(@RequestParam(name="id",required = false) Long id,@RequestParam("name") String name,@RequestParam(name="image",required = false) MultipartFile file) throws IOException {
         Category category = new Category();
+        category.setId(id);
         category.setName(name);
         return new ResponseEntity<>(adminService.saveCategory(category,file),HttpStatus.OK);
     }
+
+    @PostMapping("/deleteCategory/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<Category> deleteCategory(@PathVariable("id") Long id) {
+        Optional<Category> cat = catRepo.findById(id);
+        if(cat.isEmpty())return new ResponseEntity<>(null,HttpStatus.NOT_FOUND);
+        catRepo.deleteById(id);
+        return new ResponseEntity<>(cat.get(),HttpStatus.OK);
+    }
+
 }
