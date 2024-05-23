@@ -53,7 +53,7 @@ public class AdminController {
     }
 
 
-    @PostMapping("updateProduct/{id}")
+    @PostMapping("updateProduct/{id}") 
     @PreAuthorize("hasAuthority('ADMIN')")
     public Autopart updateProduct(@ModelAttribute AutopartForm prod, @RequestParam("specs") String specs,
             @RequestParam("imageList") MultipartFile[] files, @PathVariable("id") Long id) throws IOException {
