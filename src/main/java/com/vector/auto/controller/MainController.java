@@ -20,6 +20,8 @@ import com.vector.auto.model.LoginForm;
 import com.vector.auto.model.Role;
 import com.vector.auto.model.TokenLogin;
 import com.vector.auto.model.User;
+import com.vector.auto.model.UserData;
+import com.vector.auto.model.LoginResponse;
 import com.vector.auto.repository.CatRepo;
 import com.vector.auto.repository.PartsRepo;
 import com.vector.auto.repository.UserRepo;
@@ -81,6 +83,13 @@ public class MainController {
         List<Category> cats = catRepo.findAll();
         return new ResponseEntity<>(cats,HttpStatus.OK);
     }
+    @GetMapping("/getCategories/{id}")
+    public ResponseEntity<Category> getAllCategories(@PathVariable("id") Long id) {
+        Optional<Category> cat = catRepo.findById(id);
+
+        if(cat.isEmpty()) return new ResponseEntity<>(null,HttpStatus.NOT_FOUND);
+        return new ResponseEntity<>(cat.get(),HttpStatus.OK);
+    }
 
     @GetMapping("/getBrands")
     public ResponseEntity<Set<String>> getAllBrands() {
@@ -110,13 +119,15 @@ public class MainController {
 
 
     @PostMapping("/login")
-    public ResponseEntity<String> authenticateAndGetToken(@RequestBody LoginForm authRequest) {
+    public ResponseEntity<LoginResponse> authenticateAndGetToken(@RequestBody LoginForm authRequest) throws Exception {
         Authentication authentication = authenticationManager.authenticate(new UsernamePasswordAuthenticationToken(authRequest.getUsername(), authRequest.getPassword()));
         if (authentication.isAuthenticated()) {
-            System.out.println(userRepo.findByUsername(authRequest.getUsername()).get().getRole());
-            return new ResponseEntity<String>(jwtService.generateToken(authRequest.getUsername()),HttpStatus.OK);
+            String token = jwtService.generateToken(authRequest.getUsername());
+            Optional<User> user = userRepo.findByUsername(authRequest.getUsername());
+            if(user.isEmpty()) throw new Exception("User with username doesn't exists");
+            return new ResponseEntity<>(new LoginResponse(new UserData(user.get()),token,""),HttpStatus.OK);
         } else {
-            return new ResponseEntity<>("Invalid username/password",HttpStatus.FORBIDDEN);
+            return new ResponseEntity<>(new LoginResponse("Invalid Username/Password"),HttpStatus.FORBIDDEN);
         }
     }
 

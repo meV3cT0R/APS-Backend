@@ -15,6 +15,7 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -29,8 +30,11 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vector.auto.model.Autopart;
 import com.vector.auto.model.AutopartForm;
 import com.vector.auto.model.Category;
+import com.vector.auto.model.ImageUpload;
+import com.vector.auto.model.UserData;
 import com.vector.auto.repository.CatRepo;
 import com.vector.auto.repository.PartsRepo;
+import com.vector.auto.repository.UserRepo;
 import com.vector.auto.services.AdminService;
 
 @RestController
@@ -44,6 +48,9 @@ public class AdminController {
 
     @Autowired
     private AdminService adminService;
+
+    @Autowired
+    private UserRepo userRepo;
 
     public static String UPLOAD_DIRECTORY = System.getProperty("user.dir") + "/src/main/resources/images/products";
 
@@ -65,7 +72,9 @@ public class AdminController {
     @PostMapping("updateProduct/{id}")
     @PreAuthorize("hasAuthority('ADMIN')")
     public Autopart updateProduct(@ModelAttribute AutopartForm prod, @RequestParam("specs") String specs,
-            @RequestParam("imageList") MultipartFile[] files, @PathVariable("id") Long id) throws Exception {
+            @RequestParam(name = "imageList", required = false) MultipartFile[] files, @PathVariable("id") Long id)
+            throws Exception {
+        System.out.println("Multipart files :" + files);
         Optional<Autopart> oAutoPart = partsRepo.findById(id);
         if (oAutoPart.isEmpty())
             return new Autopart();
@@ -74,7 +83,8 @@ public class AdminController {
             autopart.setName(prod.getName());
         if (prod.getCategory() != null) {
             Optional<Category> category = catRepo.findById(prod.getCategory());
-            if(category.isEmpty()) throw new Exception("No category with id : "+prod.getCategory());
+            if (category.isEmpty())
+                throw new Exception("No category with id : " + prod.getCategory());
             autopart.setCategory(category.get());
         }
 
@@ -98,30 +108,39 @@ public class AdminController {
 
         if (!directory.exists())
             directory.mkdirs();
-        for (MultipartFile file : files) {
-            images.add(String.format("%s/%s", "/images/products", file.getOriginalFilename()));
-            Path fileAndPath = Paths.get(UPLOAD_DIRECTORY, file.getOriginalFilename());
 
-            if (!fileAndPath.toFile().exists())
-                Files.write(fileAndPath, file.getBytes());
-            /*
-             * TODO : suppose different product has same image name then later one won't be
-             * uploaded so fix it
-             */
+        if (files != null) {
+            for (String image : autopart.getImages()) {
+
+                File file = new File(System.getProperty("user.dir") + "/src/main/resources" + image);
+                if (file.exists())
+                    file.delete();
+            }
+            for (MultipartFile file : files) {
+                images.add(String.format("%s/%s", "/images/products", file.getOriginalFilename()));
+
+                Path fileNameAndPath = Paths.get(UPLOAD_DIRECTORY, file.getOriginalFilename());
+
+                if (!fileNameAndPath.toFile().exists())
+                    Files.write(fileNameAndPath, file.getBytes());
+
+            }
+            autopart.setImages(images);
         }
-        autopart.setImages(images);
+        
         return partsRepo.save(autopart);
     }
 
     @PostMapping("/saveProduct")
     @PreAuthorize("hasAuthority('ADMIN')")
-    public Autopart saveProduct(@ModelAttribute AutopartForm prod, @RequestParam("specs") String specs,
-            @RequestParam("imageList") MultipartFile[] files) throws Exception {
+    public Autopart saveProduct(@ModelAttribute AutopartForm prod,
+            @RequestParam(name = "specs", required = false) String specs,
+            @RequestParam(name = "imageList", required = false) MultipartFile[] files) throws Exception {
         Autopart part = new Autopart(prod);
         Optional<Category> category = catRepo.findById(prod.getCategory());
-            if(category.isEmpty()) throw new Exception("No category with id : "+prod.getCategory());
-            part.setCategory(category.get());
-
+        if (category.isEmpty())
+            throw new Exception("No category with id : " + prod.getCategory());
+        part.setCategory(category.get());
 
         ObjectMapper objectMapper = new ObjectMapper();
         try {
@@ -144,7 +163,6 @@ public class AdminController {
                 directory.mkdirs();
             }
             Files.write(fileNameAndPath, file.getBytes());
-
         }
         part.setImages(images);
         return partsRepo.save(part);
@@ -152,20 +170,29 @@ public class AdminController {
 
     @PostMapping("/saveCategory")
     @PreAuthorize("hasAuthority('ADMIN')")
-    public ResponseEntity<Category> saveCategory(@RequestParam(name="id",required = false) Long id,@RequestParam("name") String name,@RequestParam(name="image",required = false) MultipartFile file) throws IOException {
+    public ResponseEntity<Category> saveCategory(@RequestParam(name = "id", required = false) Long id,
+            @RequestParam("name") String name, @RequestParam(name = "file", required = false) MultipartFile file)
+            throws IOException {
         Category category = new Category();
         category.setId(id);
         category.setName(name);
-        return new ResponseEntity<>(adminService.saveCategory(category,file),HttpStatus.OK);
+        return new ResponseEntity<>(adminService.saveCategory(category, file), HttpStatus.OK);
     }
 
     @PostMapping("/deleteCategory/{id}")
     @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Category> deleteCategory(@PathVariable("id") Long id) {
         Optional<Category> cat = catRepo.findById(id);
-        if(cat.isEmpty())return new ResponseEntity<>(null,HttpStatus.NOT_FOUND);
+        if (cat.isEmpty())
+            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
         catRepo.deleteById(id);
-        return new ResponseEntity<>(cat.get(),HttpStatus.OK);
+        return new ResponseEntity<>(cat.get(), HttpStatus.OK);
+    }
+
+    @GetMapping("/getAllUsers")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<List<UserData>> getAllUsers() {
+        return new ResponseEntity<>(userRepo.findAll().stream().map(dat -> new UserData(dat)).toList(), HttpStatus.OK);
     }
 
 }

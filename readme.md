@@ -1,0 +1,1 @@
+![alt text](https://github.com/meV3cT0R/APS-Backend/blob/master-2/auto_parts_shop_er_diagram(4).drawio.png?raw=true)
