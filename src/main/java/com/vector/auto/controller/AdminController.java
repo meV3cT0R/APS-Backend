@@ -19,7 +19,6 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.ModelAttribute;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
@@ -30,7 +29,6 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vector.auto.model.Autopart;
 import com.vector.auto.model.AutopartForm;
 import com.vector.auto.model.Category;
-import com.vector.auto.model.ImageUpload;
 import com.vector.auto.model.UserData;
 import com.vector.auto.repository.CatRepo;
 import com.vector.auto.repository.PartsRepo;
@@ -65,8 +63,8 @@ public class AdminController {
             if (file.exists())
                 file.delete();
         }
-        partsRepo.delete(oAutoPart.get());
-        return new ResponseEntity<>(oAutoPart.get(), HttpStatus.OK);
+        partsRepo.deleteById(id);
+        return new ResponseEntity<>(null, HttpStatus.OK);
     }
 
     @PostMapping("updateProduct/{id}")
@@ -179,14 +177,20 @@ public class AdminController {
         return new ResponseEntity<>(adminService.saveCategory(category, file), HttpStatus.OK);
     }
 
-    @PostMapping("/deleteCategory/{id}")
+    @DeleteMapping("/deleteCategory/{id}")
     @PreAuthorize("hasAuthority('ADMIN')")
     public ResponseEntity<Category> deleteCategory(@PathVariable("id") Long id) {
+        System.out.println("Function Being Called?");
         Optional<Category> cat = catRepo.findById(id);
         if (cat.isEmpty())
             return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+        File file = new File(System.getProperty("user.dir") + "/src/main/resources" + cat.get().getImage());
+        if (file.exists())
+            file.delete();
         catRepo.deleteById(id);
-        return new ResponseEntity<>(cat.get(), HttpStatus.OK);
+
+        System.out.println("Succesfully deleted?");
+        return new ResponseEntity<>(new Category(), HttpStatus.OK);
     }
 
     @GetMapping("/getAllUsers")

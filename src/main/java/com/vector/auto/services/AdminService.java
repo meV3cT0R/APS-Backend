@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.util.LinkedList;
 import java.util.List;
 import java.util.Optional;
 
@@ -47,6 +46,7 @@ public class AdminService  {
         return new UserData(user.get());
     }
     private String saveImage(MultipartFile file) throws IOException {
+        if(file==null) return "";
         Path fileNameAndPath = Paths.get(UPLOAD_DIRECTORY, file.getOriginalFilename());
         File directory = new File(UPLOAD_DIRECTORY);
         if (!directory.exists()) {

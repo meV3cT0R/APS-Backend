@@ -6,15 +6,9 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
-import com.vector.auto.model.Autopart;
-import com.vector.auto.model.Category;
-import com.vector.auto.model.Role;
-import com.vector.auto.model.User;
 import com.vector.auto.repository.CatRepo;
 import com.vector.auto.repository.PartsRepo;
 import com.vector.auto.repository.UserRepo;
-import java.util.Map;
-import java.util.HashMap;
 
 @SpringBootApplication
 public class AutoApplication {
