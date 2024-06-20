@@ -11,5 +11,7 @@ import com.vector.auto.model.User;
 public interface UserRepo extends JpaRepository<User,Long> {
     public User findByUsernameAndPassword(String username,String password);
     public Optional<User> findByUsername(String username);
+    public Optional<User> findByEmail(String email);
 
+    public Optional<User> findByUsernameOrEmail(String username,String email);
 }

@@ -58,9 +58,14 @@ public class MainController {
     @PostMapping("/register")
     public ResponseEntity<String> addNewUser(@RequestBody User userInfo) {
         Optional<User> user = userRepo.findByUsername(userInfo.getUsername());
-        if(user.isPresent()) return new ResponseEntity<>("user already exists",HttpStatus.CONFLICT);
+        if(user.isPresent()) return new ResponseEntity<>("username already exists",HttpStatus.CONFLICT);
+        
+        user = userRepo.findByEmail(userInfo.getEmail());
+        if(user.isPresent()) return new ResponseEntity<>("email already exists",HttpStatus.CONFLICT);
+
+
         userInfo.setRole(Role.USER);
-        return new ResponseEntity<>(service.addUser(userInfo),HttpStatus.CONFLICT);
+        return new ResponseEntity<>(service.addUser(userInfo),HttpStatus.OK);
     }
 
     @GetMapping("/getAllProducts")
@@ -75,6 +80,14 @@ public class MainController {
         if(opart.isPresent())return new ResponseEntity<>(opart.get(),HttpStatus.OK);
 
         return new ResponseEntity<>(null,HttpStatus.NOT_FOUND);
+    }
+
+    @GetMapping("/getLatestProducts")
+    public ResponseEntity<List<Autopart>> getLatestProducts() {
+        List<Autopart> opart = partsRepo.getLatestAutoparts();
+
+
+        return new ResponseEntity<>(opart,HttpStatus.OK);
     }
 
 
@@ -116,6 +129,8 @@ public class MainController {
     public String adminProfile() {
         return "Welcome to Admin Profile";
     }
+
+
 
 
     @PostMapping("/login")

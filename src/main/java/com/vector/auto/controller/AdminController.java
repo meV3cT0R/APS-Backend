@@ -5,10 +5,12 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.sql.SQLException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
+import java.util.Set;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
@@ -29,6 +31,8 @@ import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vector.auto.model.Autopart;
 import com.vector.auto.model.AutopartForm;
 import com.vector.auto.model.Category;
+import com.vector.auto.model.Order;
+import com.vector.auto.model.User;
 import com.vector.auto.model.UserData;
 import com.vector.auto.repository.CatRepo;
 import com.vector.auto.repository.PartsRepo;
@@ -73,6 +77,8 @@ public class AdminController {
             @RequestParam(name = "imageList", required = false) MultipartFile[] files, @PathVariable("id") Long id)
             throws Exception {
         System.out.println("Multipart files :" + files);
+        System.out.println("Brand New : " + prod.getBrandNew());
+
         Optional<Autopart> oAutoPart = partsRepo.findById(id);
         if (oAutoPart.isEmpty())
             return new Autopart();
@@ -88,6 +94,10 @@ public class AdminController {
 
         if (prod.getPrice() != null)
             autopart.setPrice(prod.getPrice());
+        
+        if (prod.getBrandNew() != null)
+            autopart.setBrandNew(prod.getBrandNew());
+
 
         if (specs != null && !specs.trim().isEmpty()) {
             ObjectMapper objectMapper = new ObjectMapper();
@@ -135,6 +145,7 @@ public class AdminController {
             @RequestParam(name = "specs", required = false) String specs,
             @RequestParam(name = "imageList", required = false) MultipartFile[] files) throws Exception {
         Autopart part = new Autopart(prod);
+        System.out.println("Brand New : " + part.getBrandNew());
         Optional<Category> category = catRepo.findById(prod.getCategory());
         if (category.isEmpty())
             throw new Exception("No category with id : " + prod.getCategory());
@@ -179,16 +190,23 @@ public class AdminController {
 
     @DeleteMapping("/deleteCategory/{id}")
     @PreAuthorize("hasAuthority('ADMIN')")
-    public ResponseEntity<Category> deleteCategory(@PathVariable("id") Long id) {
+    public ResponseEntity<Category> deleteCategory(@PathVariable("id") Long id) throws Exception {
         System.out.println("Function Being Called?");
         Optional<Category> cat = catRepo.findById(id);
         if (cat.isEmpty())
-            return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
-        File file = new File(System.getProperty("user.dir") + "/src/main/resources" + cat.get().getImage());
+        return new ResponseEntity<>(null, HttpStatus.NOT_FOUND);
+        
+        String image = cat.get().getImage();
+        try {
+            catRepo.deleteById(id);
+        }catch(Exception ex) {
+            new ResponseEntity<>(null,HttpStatus.BAD_REQUEST);
+            throw new Exception(ex);
+        }
+        
+        File file = new File(System.getProperty("user.dir") + "/src/main/resources" + image);
         if (file.exists())
             file.delete();
-        catRepo.deleteById(id);
-
         System.out.println("Succesfully deleted?");
         return new ResponseEntity<>(new Category(), HttpStatus.OK);
     }
@@ -199,4 +217,13 @@ public class AdminController {
         return new ResponseEntity<>(userRepo.findAll().stream().map(dat -> new UserData(dat)).toList(), HttpStatus.OK);
     }
 
+
+    @GetMapping("/getOrders/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<Set<Order>> getOrders(@PathVariable("id") Long id) {
+        Optional<User> user = userRepo.findById(id);
+        if(user.isEmpty()) return new ResponseEntity<>(null,HttpStatus.NOT_FOUND);
+
+        return new ResponseEntity<>(user.get().getOrders(),HttpStatus.OK);
+    }
 }

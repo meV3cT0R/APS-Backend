@@ -57,12 +57,11 @@ public class OrderService {
                 throw new Exception("No Product with id : "+cartItem.getProductId());
 
             item.setQuantity(cartItem.getQuantity());
-            item.setQuantity(cartItem.getQuantity());
             item.setOrders(order);
-
+            item.setPart(part.get());
             cartItemRepo.save(item);
             items.add(item);
-            totalCost += part.get().getPrice();
+            totalCost += part.get().getPrice()*item.getQuantity();
             
             cartItemRepo.save(item);
         };

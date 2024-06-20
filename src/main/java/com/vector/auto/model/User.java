@@ -29,6 +29,8 @@ public class User {
     private String password;
     private Role role;
     private String Address;
+    private String phoneNumber;
+    private String email;
 
     @OneToMany(mappedBy="users",cascade = CascadeType.ALL,orphanRemoval = true)
     @JsonIgnore

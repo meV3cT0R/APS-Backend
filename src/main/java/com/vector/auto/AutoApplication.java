@@ -6,6 +6,8 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
 import org.springframework.context.annotation.Bean;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
+import com.vector.auto.model.Role;
+import com.vector.auto.model.User;
 import com.vector.auto.repository.CatRepo;
 import com.vector.auto.repository.PartsRepo;
 import com.vector.auto.repository.UserRepo;
@@ -53,22 +55,24 @@ public class AutoApplication {
 
 			// partsRepo.save(part2);
 
-			// User admin = new User();
-			// admin.setName("super admin");
-			// admin.setUsername("superadmin");
-			// admin.setPassword(encoder.encode("superadmin"));
-			// admin.setRole(Role.ADMIN);
+			User admin = new User();
+			admin.setName("super admin");
+			admin.setUsername("superadmin");
+			admin.setPassword(encoder.encode("superadmin"));
+			admin.setRole(Role.ADMIN);
 
-			// userRepo.save(admin);
+			if(userRepo.findByUsername("superadmin").isEmpty())
+				userRepo.save(admin);
 
-			// User user = new User();
-			// user.setName("user");
-			// user.setUsername("user");
-			// user.setPassword(encoder.encode("user"));
-			// user.setRole(Role.USER);
-
-			// userRepo.save(user);
-			// System.out.println("Data inserted");
+			User user = new User();
+			user.setName("user");
+			user.setUsername("user");
+			user.setPassword(encoder.encode("user"));
+			
+			user.setRole(Role.USER);
+			if(userRepo.findByUsername("user").isEmpty())
+				userRepo.save(user);
+			System.out.println("Data inserted");
 		};
 	}
 }

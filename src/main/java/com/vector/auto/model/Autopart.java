@@ -1,6 +1,7 @@
 package com.vector.auto.model;
 
 
+import java.util.Date;
 import java.util.List;
 import java.util.Map;
 
@@ -13,6 +14,7 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.MapKeyColumn;
+import jakarta.persistence.PrePersist;
 import lombok.AllArgsConstructor;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
@@ -44,9 +46,21 @@ public class Autopart {
     @JoinColumn(name="category_id",referencedColumnName = "id")
     private Category category;
 
+    private Boolean brandNew;
+
+    private Date createdDate;
+
     public Autopart(AutopartForm part) {
         this.name = part.getName();
         this.price = part.getPrice();
         this.images = part.getImages();
+        this.brandNew = part.getBrandNew();
+        this.brand = part.getBrand();
     }
+
+    @PrePersist
+    protected void onCreate() {
+        if(createdDate==null) 
+            createdDate = new Date();
+    } 
 }

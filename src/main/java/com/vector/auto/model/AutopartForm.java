@@ -22,4 +22,6 @@ public class AutopartForm {
     private Long category;
 
     private List<String> images;
+    private Boolean brandNew;
+    private String brand;
 }
