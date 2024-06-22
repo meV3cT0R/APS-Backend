@@ -15,6 +15,7 @@ public class UserData {
     private String name;
     private String username;
     private Role role;
+    private String phone;
     private String address;
     private Set<Order> orders;
 
@@ -25,5 +26,6 @@ public class UserData {
         this.role = user.getRole();
         this.address = user.getAddress();
         this.orders = user.getOrders();
+        this.phone = user.getPhoneNumber();
     }
 }

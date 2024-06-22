@@ -68,6 +68,8 @@ public class AutoApplication {
 			user.setName("user");
 			user.setUsername("user");
 			user.setPassword(encoder.encode("user"));
+			user.setPhoneNumber("98765843210");
+			user.setAddress("Address -60, Address");
 			
 			user.setRole(Role.USER);
 			if(userRepo.findByUsername("user").isEmpty())
