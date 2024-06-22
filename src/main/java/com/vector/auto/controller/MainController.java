@@ -112,14 +112,14 @@ public class MainController {
 
 
     @PostMapping("/loginWithToken")
-    public ResponseEntity<User> loginWithToken(@RequestBody TokenLogin tokenLogin) {
+    public ResponseEntity<UserData> loginWithToken(@RequestBody TokenLogin tokenLogin) {
         boolean valid = jwtService.validateToken(tokenLogin.getToken());
         String username = jwtService.extractUsername(tokenLogin.getToken());
         
         Optional<User> user = userRepo.findByUsername(username);
 
         if(valid && user.isPresent())
-            return new ResponseEntity<>(user.get(),HttpStatus.OK);   
+            return new ResponseEntity<>(new UserData(user.get()),HttpStatus.OK);   
         return new ResponseEntity<>(null,HttpStatus.FORBIDDEN);
     }
 

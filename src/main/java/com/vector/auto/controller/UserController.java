@@ -7,7 +7,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
@@ -33,6 +33,9 @@ public class UserController {
 
     @Autowired
     private OrderService orderService;
+
+    @Autowired
+    private PasswordEncoder encoder;
     
     @GetMapping("/userProfile")
     @PreAuthorize("hasAuthority('USER')")
@@ -59,6 +62,21 @@ public class UserController {
             return new ResponseEntity<UserData>(new UserData(user.get()),HttpStatus.OK);
         }
 
+        return new ResponseEntity<>(new UserData(),HttpStatus.NOT_FOUND);
+    }
+
+
+    @PutMapping("/updatePassword")
+    @PreAuthorize("hasAuthority('USER')")
+    public ResponseEntity<UserData> updatePassword(@RequestParam("username") String username,@RequestParam("password") String password,@RequestParam("newPassword") String newPassword) {
+        Optional<User> user = userRepo.findByUsername(username);
+        if(user.isPresent()) {
+            if(encoder.matches(password, user.get().getPassword())) {
+                user.get().setPassword(encoder.encode(newPassword));
+                return new ResponseEntity<>(new UserData(userRepo.save(user.get())),HttpStatus.OK);
+            }
+            return new ResponseEntity<>(new UserData(),HttpStatus.BAD_REQUEST);
+        }
         return new ResponseEntity<>(new UserData(),HttpStatus.NOT_FOUND);
     }
 }
