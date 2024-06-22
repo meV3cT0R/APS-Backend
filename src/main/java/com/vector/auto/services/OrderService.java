@@ -58,16 +58,15 @@ public class OrderService {
 
             item.setQuantity(cartItem.getQuantity());
             item.setOrders(order);
-            item.setPart(part.get());
+            item.setPart(part.get().getAName());
             cartItemRepo.save(item);
             items.add(item);
-            totalCost += part.get().getPrice()*item.getQuantity();
+            totalCost += part.get().getAName().getPrice()*item.getQuantity();
             
             cartItemRepo.save(item);
         };
 
         order.setCartItems(items);
-        order.setStatus(Status.PENDING);
         order.setTotalCost(totalCost);
         order.setCartItems(items);
 

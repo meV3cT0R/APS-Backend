@@ -5,7 +5,6 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
-import java.sql.SQLException;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
@@ -30,10 +29,13 @@ import com.fasterxml.jackson.core.type.TypeReference;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.vector.auto.model.Autopart;
 import com.vector.auto.model.AutopartForm;
+import com.vector.auto.model.AutopartName;
 import com.vector.auto.model.Category;
 import com.vector.auto.model.Order;
+import com.vector.auto.model.Role;
 import com.vector.auto.model.User;
 import com.vector.auto.model.UserData;
+import com.vector.auto.repository.AutopartNameRepo;
 import com.vector.auto.repository.CatRepo;
 import com.vector.auto.repository.PartsRepo;
 import com.vector.auto.repository.UserRepo;
@@ -53,6 +55,9 @@ public class AdminController {
 
     @Autowired
     private UserRepo userRepo;
+
+    @Autowired
+    private AutopartNameRepo apNameRepo;
 
     public static String UPLOAD_DIRECTORY = System.getProperty("user.dir") + "/src/main/resources/images/products";
 
@@ -83,8 +88,10 @@ public class AdminController {
         if (oAutoPart.isEmpty())
             return new Autopart();
         Autopart autopart = oAutoPart.get();
+        if(autopart.getAName()==null) 
+                autopart.setAName(new AutopartName());
         if (prod.getName() != null && !prod.getName().trim().isEmpty())
-            autopart.setName(prod.getName());
+            autopart.getAName().setName(prod.getName());
         if (prod.getCategory() != null) {
             Optional<Category> category = catRepo.findById(prod.getCategory());
             if (category.isEmpty())
@@ -93,7 +100,7 @@ public class AdminController {
         }
 
         if (prod.getPrice() != null)
-            autopart.setPrice(prod.getPrice());
+            autopart.getAName().setPrice(prod.getPrice());
         
         if (prod.getBrandNew() != null)
             autopart.setBrandNew(prod.getBrandNew());
@@ -145,6 +152,9 @@ public class AdminController {
             @RequestParam(name = "specs", required = false) String specs,
             @RequestParam(name = "imageList", required = false) MultipartFile[] files) throws Exception {
         Autopart part = new Autopart(prod);
+        AutopartName apName = new AutopartName(prod.getName(),prod.getPrice());
+        apNameRepo.save(apName);
+        part.setAName(apName);
         System.out.println("Brand New : " + part.getBrandNew());
         Optional<Category> category = catRepo.findById(prod.getCategory());
         if (category.isEmpty())
@@ -217,6 +227,20 @@ public class AdminController {
         return new ResponseEntity<>(userRepo.findAll().stream().map(dat -> new UserData(dat)).toList(), HttpStatus.OK);
     }
 
+
+    @DeleteMapping("/deleteUser/{id}")
+    @PreAuthorize("hasAuthority('ADMIN')")
+    public ResponseEntity<UserData> deleteUser(@PathVariable("id") Long id) {
+        Optional<User> user = userRepo.findById(id);
+        if(user.isPresent()){ 
+            if(user.get().getRole()==Role.ADMIN)
+                return new ResponseEntity<>(new UserData(),HttpStatus.BAD_REQUEST);
+            userRepo.deleteById(id);
+            return new ResponseEntity<>(new UserData(user.get()),HttpStatus.OK);
+        }
+        
+        return new ResponseEntity<>(new UserData(),HttpStatus.NOT_FOUND);
+    }
 
     @GetMapping("/getOrders/{id}")
     @PreAuthorize("hasAuthority('ADMIN')")

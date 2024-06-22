@@ -25,7 +25,7 @@ public class CartItem {
 
     @ManyToOne
     @JoinColumn(name="product",referencedColumnName = "id")
-    private Autopart part;
+    private AutopartName part;
 
 
     @ManyToOne
@@ -33,5 +33,5 @@ public class CartItem {
     @JsonIgnore
     private Order orders;
 
-    private Long quantity;    
+    private Long quantity;  
 }

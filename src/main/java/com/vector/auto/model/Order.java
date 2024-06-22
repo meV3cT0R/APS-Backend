@@ -6,7 +6,6 @@ import java.util.Date;
 import java.util.Set;
 
 import jakarta.persistence.CascadeType;
-import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -30,7 +29,6 @@ import lombok.Setter;
 public class Order {
     private @Id @GeneratedValue(strategy = GenerationType.IDENTITY) Long id;
     private Double totalCost;
-    private Status status;
 
     @ManyToOne
     @JoinColumn(name="user_id",referencedColumnName = "id")
